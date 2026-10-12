@@ -20,8 +20,8 @@ button.del{background:var(--red)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #login{max-width:380px;margin:40px auto;display:none}
 #login input{width:100%;margin:5px 0}
-#err,#cfg{color:var(--red);margin-top:6px}
-#cfg{display:none;max-width:640px;margin:30px auto;line-height:1.7}
+#err{color:var(--red);margin-top:6px}
+#cfg{display:none;max-width:640px;margin:30px auto;line-height:1.7;color:var(--red)}
 #app{display:none}
 table{border-collapse:collapse;width:100%;background:#fff}
 th,td{border-bottom:1px solid #e3edf3;padding:6px 8px;text-align:left;vertical-align:top}
@@ -36,6 +36,11 @@ td.act{white-space:nowrap}td.act button{padding:2px 9px;font-size:12px}
 .dlg label{font-weight:700}
 small{color:#678}
 #msg{min-height:20px;color:#2e7d32}
+footer{text-align:center;padding:26px 10px 34px}
+footer a{color:#c3d1dc;font-size:12px;text-decoration:none}
+footer a:hover{color:#789}
+#tlogin{flex-direction:column;gap:8px}
+.tw2{max-height:55vh;overflow:auto;border:1px solid #cfe0ea;border-radius:8px}
 </style>
 </head>
 <body>
@@ -48,18 +53,16 @@ small{color:#678}
 
 <div id="cfg" class="box">
  <b>⚠ Supabase තවම සම්බන්ධ කර නැත.</b><br>
- මෙම ගොනුවේ ඉහළින් ඇති <code>SUPABASE_URL</code> සහ <code>SUPABASE_ANON_KEY</code> වෙනුවට ඔබේ Supabase project එකේ
- <b>Project Settings → API</b> හි ඇති <b>Project URL</b> සහ <b>anon public</b> key එක paste කරන්න.
- (<b>service_role</b> key එක කිසිවිටෙක මෙහි නොයොදන්න.)
+ මෙම ගොනුවේ ඉහළින් ඇති <code>SUPABASE_URL</code> සහ <code>SUPABASE_ANON_KEY</code> පරීක්ෂා කරන්න.
 </div>
 
 <div id="login" class="box">
- <b>Admin Login</b>
+ <b>ශබ්දකෝෂ Admin Login</b>
  <input id="em" type="email" placeholder="Email" autocomplete="username">
  <input id="pw" type="password" placeholder="මුරපදය" autocomplete="current-password">
  <button id="lgo">ඇතුල් වන්න</button>
  <div id="err"></div>
- <small>Supabase → Authentication → Users හි ඔබ සාදන Admin ගිණුමෙන් පමණක් දත්ත වෙනස් කළ හැක.</small>
+ <small>ශබ්දකෝෂයේ ප්‍රධානියා විසින් ලබා දුන් email සහ මුරපදය භාවිතා කරන්න.</small>
 </div>
 
 <div id="app">
@@ -83,12 +86,12 @@ small{color:#678}
 <div class="dlg" id="d1"><div>
  <b id="d1t">අලුත් වචනයක්</b>
  <input type="hidden" id="eid">
- <small id="ehint">වචන කිහිපයක් එකවර ඇතුළත් කළ හැක: සිංහල, தமிழ், English කොටු තුනෙහිම වචන <b>/</b> හෝ <b>,</b> ලකුණෙන් වෙන් කර ලියන්න. එක් එක් වචනය වෙන වෙනම පේළියක් ලෙස සුරැකේ. දෙමළ / English වචන ඇත්තේ අනුපිළිවෙලින් (1වන සිංහල වචනයට 1වන දෙමළ වචනය ආදී ලෙස).<br>උදා: <code>නගරය / පූජා නගරය / වරාය</code> · <code>நகரம் / வழிபாட்டு நகரம் / துறைமுகம்</code> · <code>City / Sacred City / Port</code></small>
+ <small id="ehint">වචන කිහිපයක් එකවර ඇතුළත් කළ හැක: සිංහල, தமிழ், English කොටු තුනෙහිම වචන <b>/</b> හෝ <b>,</b> ලකුණෙන් වෙන් කර ලියන්න. එක් එක් වචනය වෙන වෙනම පේළියක් ලෙස සුරැකේ. දෙමළ / English වචන ඇත්තේ අනුපිළිවෙලින් (1වන සිංහල වචනයට 1වන දෙමළ වචනය ආදී ලෙස). <b>සිංහල පමණක්</b> ලියා දෙමළ / English හිස්ව තැබිය හැක.<br>උදා: <code>නගරය / පූජා නගරය / වරාය</code> · <code>நகரம் / வழிபாட்டு நகரம் / துறைமுகம்</code> · <code>City / Sacred City / Port</code></small>
  <label>වර්ගය</label>
  <select id="ek"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
- <label>සිංහල</label><input id="esi" placeholder="උදා: පූජා නගරය">
- <label>தமிழ்</label><input id="eta" placeholder="தமிழ் சொல்">
- <label>English</label><input id="een" placeholder="English term">
+ <label>සිංහල</label><input id="esi">
+ <label>தமிழ்</label><input id="eta">
+ <label>English</label><input id="een">
  <label>සටහන (අවශ්‍ය නම්)</label><input id="eno">
  <div id="eerr" style="color:var(--red)"></div>
  <div class="row"><button id="esv">සුරකින්න</button><button class="alt" id="ecl">වසන්න</button></div>
@@ -97,7 +100,7 @@ small{color:#678}
 <!-- එකවර ඇතුළත් කිරීම -->
 <div class="dlg" id="d2"><div>
  <b>📥 එකවර ඇතුළත් කරන්න</b>
- <small>එක් පේළියකට එක් වචනයක්: <code>සිංහල|தமிழ்|English</code> (4වන කොටසක් ලෙස සටහනක් ද දිය හැක). දැනටමත් ඇති සිංහල වචන යාවත්කාලීන වේ.</small>
+ <small>එක් පේළියකට එක් වචනයක්: <code>සිංහල|தமிழ்|English</code> (4වන කොටසක් ලෙස සටහනක් ද දිය හැක). දැනටමත් ඇති සිංහල වචන යාවත්කාලීන වේ (පරණ අගය Trash එකට යයි, එබැවින් නැවත ලබා ගත හැක).<br><b>සිංහල වචන පමණක්</b> ඇත්නම් "|" නොමැතිව ලියන්න; <code>කන්දරෝඩෙයි / හැමන්හෛල් / සූකරතිත්ථ</code> ලෙස <b>/</b> හෝ <b>,</b> වලින් වෙන් කළ හැක. ඒවා වෙන් වෙන් පේළි ලෙස සුරැකේ (දෙමළ / English "නැත" ලෙස පෙනේ).</small>
  <label>වර්ගය</label>
  <select id="bk"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
  <textarea id="bt" placeholder="නගරය|நகரம்|City&#10;පූජා නගරය|வழிபாட்டு நகரம்|Sacred City" spellcheck="false"></textarea>
@@ -105,39 +108,84 @@ small{color:#678}
  <div class="row"><button id="bsv">ඇතුළත් කරන්න</button><button class="alt" id="bcl">වසන්න</button></div>
 </div></div>
 
+<footer><a href="#" id="tl">🗑 Trash · Admin</a></footer>
+
+<!-- Trash -->
+<div class="dlg" id="d3"><div style="width:min(96vw,820px)">
+ <b>🗑 මැකූ / වෙනස් කළ වචන (Trash)</b>
+ <div id="tlogin">
+  <small>Supabase Authentication හි admin ගිණුමෙන් පිවිසෙන්න.</small>
+  <input id="tem" type="email" placeholder="Email" autocomplete="off">
+  <input id="tpw" type="password" placeholder="මුරපදය" autocomplete="off">
+  <button id="tgo">ඇතුල් වන්න</button>
+ </div>
+ <div id="tview" style="display:none">
+  <div class="row" style="margin-bottom:8px"><span id="tcnt"></span><button class="alt" id="tout" style="margin-left:auto">Logout</button></div>
+  <div class="tw2"><table>
+   <thead><tr><th>ආකාරය</th><th>වර්ගය</th><th>සිංහල</th><th>தமிழ்</th><th>English</th><th>වේලාව</th><th></th></tr></thead>
+   <tbody id="ttb"></tbody>
+  </table></div>
+ </div>
+ <div id="terr" style="color:var(--red)"></div>
+ <div id="tmsg"></div>
+ <div class="row"><button class="alt" id="tcl">වසන්න</button></div>
+</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ============ මෙහි ඔබේ Supabase විස්තර paste කරන්න ============ */
-const SUPABASE_URL='https://jcijglwpkfluyzrltimk.supabase.co/';
+/* ============ Supabase විස්තර ============ */
+const SUPABASE_URL='https://jcijglwpkfluyzrltimk.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjaWpnbHdwa2ZsdXl6cmx0aW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4MzU3OTUsImV4cCI6MjA4MjQxMTc5NX0.dvT8OiyVEiYn_DhkMakmSq1Vvr4REDr0kYPnyqCtWHs';
-/* ================================================================= */
+/* ========================================= */
 
 const $=id=>document.getElementById(id);
 const KN={category:'වර්ග',place:'ස්ථාන නාම',other:'වෙනත්'};
+const RN={deleted:'මැකූවා',overwritten:'පරණ අගය (overwrite)'};
 const nk=s=>String(s).replace(/\u200d/g,'').replace(/\s+/g,' ').trim();/* DB trigger එකටම සමාන */
-let sb=null,rows=[];
+const spl=s=>{const a=s.split(/[\/,，]/).map(x=>x.trim());while(a.length&&!a[a.length-1])a.pop();return a;};
+let sb=null,sbA=null,rows=[],CRED=null;/* CRED = {email,pw} – මෙම tab එකේ පමණක් (sessionStorage) */
 
-if(!window.supabase||SUPABASE_URL.startsWith('PASTE')||SUPABASE_ANON_KEY.startsWith('PASTE')){
- $('cfg').style.display='block';
-}else{
- sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
- sb.auth.onAuthStateChange((_e,s)=>s?enter(s):leave());
- sb.auth.getSession().then(({data})=>data.session?enter(data.session):leave());
+if(!window.supabase||!SUPABASE_URL||!SUPABASE_ANON_KEY){$('cfg').style.display='block';}
+else{
+ /* ශබ්දකෝෂ admin: Supabase Auth භාවිතා නොකරයි */
+ sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+ /* Trash admin: Supabase Authentication භාවිතා කරයි */
+ sbA=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,storage:window.sessionStorage,storageKey:'gs_trash_auth',autoRefreshToken:true,detectSessionInUrl:false}});
+ init();
 }
-
+async function init(){
+ try{CRED=JSON.parse(sessionStorage.getItem('gs_dict_cred')||'null');}catch(e){CRED=null;}
+ if(CRED){
+  const{data}=await sb.rpc('dict_login',{p_email:CRED.email,p_password:CRED.pw});
+  if(data){enter();return;}
+ }
+ logout();
+}
 function leave(){$('app').style.display='none';$('login').style.display='block';$('lo').style.display='none';$('who').textContent='';}
-async function enter(s){
+function logout(){CRED=null;try{sessionStorage.removeItem('gs_dict_cred');}catch(e){}leave();}
+async function enter(){
  $('login').style.display='none';$('app').style.display='block';$('lo').style.display='';
- $('who').textContent=s.user&&s.user.email?s.user.email:'';
- await loadRows();
+ $('who').textContent=CRED.email;await loadRows();
 }
 $('lgo').onclick=async()=>{
  $('err').textContent='';
- const{error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});
- if(error)$('err').textContent='ඇතුල් විය නොහැක: '+error.message;
+ const email=$('em').value.trim(),pw=$('pw').value;
+ if(!email||!pw){$('err').textContent='email සහ මුරපදය ඇතුළත් කරන්න';return;}
+ const{data,error}=await sb.rpc('dict_login',{p_email:email,p_password:pw});
+ if(error){$('err').textContent='දෝෂයක්: '+error.message;return;}
+ if(!data){$('err').textContent='email හෝ මුරපදය වැරදියි';return;}
+ CRED={email,pw};try{sessionStorage.setItem('gs_dict_cred',JSON.stringify(CRED));}catch(e){}
+ $('pw').value='';enter();
 };
 $('pw').onkeydown=e=>{if(e.key=='Enter')$('lgo').click();};
-$('lo').onclick=async e=>{e.preventDefault();await sb.auth.signOut();};
+$('lo').onclick=e=>{e.preventDefault();logout();};
+
+/* ලිවීමේ ක්‍රියා (server එකේ email + මුරපදය නැවත පරීක්ෂා වේ) */
+async function api(fn,args){
+ const r=await sb.rpc(fn,Object.assign({p_email:CRED.email,p_password:CRED.pw},args));
+ if(r.error&&(r.error.code=='28000'||/unauthorized/i.test(r.error.message||''))){logout();$('err').textContent='ප්‍රවේශය අවසන් වී ඇත. නැවත login වන්න.';}
+ return r;
+}
 
 /* ---------- දත්ත කියවීම (1000 ට වැඩි නම් කොටස් වශයෙන්) ---------- */
 async function loadRows(){
@@ -157,15 +205,15 @@ function render(){
  const list=rows.filter(r=>(!k||r.kind==k)&&(!fm||!r.ta||!r.en)&&(!q||[r.si,r.ta,r.en,r.note].some(v=>v&&nk(v).toLowerCase().includes(q))));
  list.forEach(r=>{
   const tr=document.createElement('tr');
-  const td=(t,miss)=>{const c=document.createElement('td');if(t)c.textContent=t;else{c.textContent='— නැත —';c.className='miss';}tr.appendChild(c);return c;};
+  const td=t=>{const c=document.createElement('td');if(t)c.textContent=t;else{c.textContent='— නැත —';c.className='miss';}tr.appendChild(c);return c;};
   td(KN[r.kind]||r.kind);td(r.si);td(r.ta);td(r.en);
   const n=document.createElement('td');n.textContent=r.note||'';tr.appendChild(n);
   const a=document.createElement('td');a.className='act';
   const eb=document.createElement('button');eb.className='alt';eb.textContent='✎';eb.title='සංස්කරණය';eb.onclick=()=>openEdit(r);
   const db=document.createElement('button');db.className='del';db.textContent='×';db.title='මකන්න';db.style.marginLeft='4px';
-  db.onclick=async()=>{if(!confirm(`"${r.si}" මකන්නද?`))return;
-   const{error}=await sb.from('dictionary').delete().eq('id',r.id);
-   if(error)flash('මැකීම අසාර්ථකයි: '+error.message,true);else{flash('මකා දැමුවා');await loadRows();}};
+  db.onclick=async()=>{if(!confirm(`"${r.si}" මකන්නද? (Trash එකට යයි)`))return;
+   const{error}=await api('dict_delete',{p_id:r.id});
+   if(error)flash('මැකීම අසාර්ථකයි: '+error.message,true);else{flash('Trash එකට ගියා');await loadRows();}};
   a.append(eb,db);tr.appendChild(a);tb.appendChild(tr);
  });
  $('cnt').textContent=`${list.length} / ${rows.length}`;
@@ -185,32 +233,29 @@ function openEdit(r){
 }
 $('add').onclick=()=>openEdit(null);
 $('ecl').onclick=()=>$('d1').style.display='none';
-const esvSingle=async()=>{
- const si=$('esi').value.trim();if(!si){$('eerr').textContent='සිංහල වචනය ඇතුළත් කරන්න';return;}
- const rec={kind:$('ek').value,si,ta:$('eta').value.trim()||null,en:$('een').value.trim()||null,note:$('eno').value.trim()||null};
- const id=$('eid').value;
- const{error}=id?await sb.from('dictionary').update(rec).eq('id',id):await sb.from('dictionary').insert(rec);
- if(error){$('eerr').textContent=error.code=='23505'?'මෙම සිංහල වචනය (මෙම වර්ගයේ) දැනටමත් ඇත':('සුරැකීම අසාර්ථකයි: '+error.message);return;}
- $('d1').style.display='none';flash('සුරකින ලදී');await loadRows();
-};
 
-/* ---------- අලුත් වචන: "/" හෝ "," මගින් වෙන් කළ වචන කිහිපයක් එකවර (එක් එක් වචනය වෙන් වෙන් පේළියකට) ---------- */
-const spl=s=>{const a=s.split(/[\/,，]/).map(x=>x.trim());while(a.length&&!a[a.length-1])a.pop();return a;};
+/* "/" හෝ "," මගින් වෙන් කළ වචන කිහිපයක් එකවර (එක් එක් වචනය වෙන් වෙන් පේළියකට). සංස්කරණයේදී 1වන වචනය පවතින පේළිය යාවත්කාලීන කරයි */
 $('esv').onclick=async()=>{
- if($('eid').value)return esvSingle();/* සංස්කරණය: තනි වචනයක් */
- const kind=$('ek').value,note=$('eno').value.trim()||null,
+ const eid=$('eid').value,kind=$('ek').value,note=$('eno').value.trim()||null,
   S=spl($('esi').value),T=spl($('eta').value),E=spl($('een').value),er=t=>$('eerr').textContent=t;
  if(!S.length){er('සිංහල වචනය ඇතුළත් කරන්න');return;}
  if(S.some(x=>!x)){er('සිංහල වචන අතර හිස් ස්ථානයක් ඇත (දිගට "/" හෝ "," දෙවරක් තිබේ)');return;}
  if(T.length>S.length||E.length>S.length){er(`සිංහල වචන ${S.length}ක් ඇත, නමුත් දෙමළ ${T.length}ක් / English ${E.length}ක් ඇත. දෙමළ / English වචන සංඛ්‍යාව සිංහලට වඩා වැඩි විය නොහැක (අඩු විය හැක).`);return;}
  const have=new Set(rows.filter(r=>r.kind==kind).map(r=>nk(r.si))),seen=new Set(),recs=[],skip=[];
- S.forEach((si,i)=>{const k=nk(si);if(have.has(k)||seen.has(k)){skip.push(si);return;}seen.add(k);
+ S.forEach((si,i)=>{if(eid&&i==0)return;
+  const k=nk(si);if(have.has(k)||seen.has(k)){skip.push(si);return;}seen.add(k);
   recs.push({kind,si,ta:T[i]||null,en:E[i]||null,note});});
- if(!recs.length){er('අලුත් වචන නැත – දැනටමත් ඇත: '+skip.join(', '));return;}
- const{error}=await sb.from('dictionary').insert(recs);
- if(error){er(error.code=='23505'?'එක් වචනයක් දැනටමත් ඇත':('සුරැකීම අසාර්ථකයි: '+error.message));return;}
+ if(!recs.length&&!eid){er('අලුත් වචන නැත – දැනටමත් ඇත: '+skip.join(', '));return;}
+ if(eid){
+  const{error:e1}=await api('dict_update',{p_id:+eid,p_rec:{kind,si:S[0],ta:T[0]||null,en:E[0]||null,note}});
+  if(e1){er(e1.code=='23505'?'මෙම සිංහල වචනය (මෙම වර්ගයේ) දැනටමත් ඇත':('සුරැකීම අසාර්ථකයි: '+e1.message));return;}
+ }
+ if(recs.length){
+  const{error}=await api('dict_save',{p_rows:recs,p_overwrite:false});
+  if(error){er('සුරැකීම අසාර්ථකයි: '+error.message);return;}
+ }
  $('d1').style.display='none';
- flash(`වචන ${recs.length}ක් ඇතුළත් කළා`+(skip.length?` (දැනටමත් තිබූ නිසා මඟ හැරියා: ${skip.join(', ')})`:''));
+ flash(`වචන ${recs.length+(eid?1:0)}ක් සුරකින ලදී`+(skip.length?` (දැනටමත් තිබූ නිසා මඟ හැරියා: ${skip.join(', ')})`:''));
  await loadRows();
 };
 
@@ -221,12 +266,14 @@ $('bsv').onclick=async()=>{
  const kind=$('bk').value,seen=new Map();
  $('bt').value.split(/\r?\n/).forEach(line=>{
   const p=line.split('|').map(s=>s.trim());if(!p[0])return;
-  seen.set(nk(p[0]),{kind,si:p[0],ta:p[1]||null,en:p[2]||null,note:p[3]||null});/* එකම වචනය දෙවරක් නම් අන්තිම එක */
+  if(p.length==1){spl(p[0]).forEach(w=>{if(w)seen.set(nk(w),{kind,si:w,ta:null,en:null,note:null});});return;}
+  seen.set(nk(p[0]),{kind,si:p[0],ta:p[1]||null,en:p[2]||null,note:p[3]||null});
  });
- const recs=[...seen.values()];
- if(!recs.length){$('berr').textContent='ඇතුළත් කිරීමට පේළි නැත';return;}
+ /* පරිවර්තන නැති (සිංහල පමණක්) වචන දැනටමත් ශබ්දකෝෂයේ ඇත්නම් ඒවා මඟ හරියි */
+ const recs=[...seen.values()].filter(r=>r.ta||r.en||!rows.some(x=>x.kind==r.kind&&nk(x.si)==nk(r.si)));
+ if(!recs.length){$('berr').textContent='ඇතුළත් කිරීමට අලුත් පේළි නැත';return;}
  for(let i=0;i<recs.length;i+=200){
-  const{error}=await sb.from('dictionary').upsert(recs.slice(i,i+200),{onConflict:'kind,si_norm'});
+  const{error}=await api('dict_save',{p_rows:recs.slice(i,i+200),p_overwrite:true});
   if(error){$('berr').textContent='අසාර්ථකයි: '+error.message;return;}
  }
  $('d2').style.display='none';flash(`වචන ${recs.length}ක් ඇතුළත් / යාවත්කාලීන කළා`);await loadRows();
@@ -239,6 +286,48 @@ $('exp').onclick=()=>{
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  a.download='geosketch_dictionary.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 };
+
+/* ---------- Trash (Supabase Authentication) ---------- */
+const tmsg=(t,bad)=>{const m=$('tmsg');m.style.color=bad?'#d6212b':'#2e7d32';m.textContent=t;};
+function showT(inn){$('tlogin').style.display=inn?'none':'flex';$('tview').style.display=inn?'block':'none';}
+async function tcheck(){
+ const{data:{session}}=await sbA.auth.getSession();
+ if(!session){showT(false);return;}
+ const{data:ok}=await sbA.rpc('is_trash_admin');
+ if(ok){showT(true);await tload();}
+ else{await sbA.auth.signOut();showT(false);$('terr').textContent='මෙම ගිණුමට Trash වෙත ප්‍රවේශය නැත';}
+}
+$('tl').onclick=async e=>{e.preventDefault();if(!sbA)return;$('terr').textContent='';tmsg('');$('d3').style.display='flex';await tcheck();};
+$('tcl').onclick=()=>$('d3').style.display='none';
+$('tgo').onclick=async()=>{
+ $('terr').textContent='';
+ const{error}=await sbA.auth.signInWithPassword({email:$('tem').value.trim(),password:$('tpw').value});
+ if(error){$('terr').textContent='email හෝ මුරපදය වැරදියි';return;}
+ $('tpw').value='';await tcheck();
+};
+$('tpw').onkeydown=e=>{if(e.key=='Enter')$('tgo').click();};
+$('tout').onclick=async()=>{await sbA.auth.signOut();$('ttb').innerHTML='';tmsg('');showT(false);};
+async function tload(){
+ const{data,error}=await sbA.from('dictionary_trash').select('*').order('deleted_at',{ascending:false});
+ if(error){tmsg('කියවිය නොහැක: '+error.message,true);return;}
+ const tb=$('ttb');tb.innerHTML='';
+ data.forEach(r=>{
+  const tr=document.createElement('tr');
+  [RN[r.reason]||r.reason,KN[r.kind]||r.kind,r.si,r.ta||'—',r.en||'—',new Date(r.deleted_at).toLocaleString('en-GB')].forEach(v=>{const c=document.createElement('td');c.textContent=v;tr.appendChild(c);});
+  const a=document.createElement('td');a.className='act';
+  const rb=document.createElement('button');rb.textContent='↩ Restore';
+  rb.onclick=async()=>{
+   const{error}=await sbA.rpc('trash_restore',{p_trash_id:r.trash_id});
+   if(error){tmsg(error.code=='23505'?`"${r.si}" නැවත ශබ්දකෝෂයේ ඇති නිසා restore කළ නොහැක`:'අසාර්ථකයි: '+error.message,true);return;}
+   tmsg('Restore කළා');await tload();if(CRED)await loadRows();};
+  const pb=document.createElement('button');pb.className='del';pb.textContent='සදහටම මකන්න';pb.style.marginLeft='4px';
+  pb.onclick=async()=>{if(!confirm(`"${r.si}" සදහටම මකන්නද? නැවත ලබා ගත නොහැක.`))return;
+   const{error}=await sbA.rpc('trash_purge',{p_trash_id:r.trash_id});
+   if(error)tmsg('අසාර්ථකයි: '+error.message,true);else{tmsg('සදහටම මකා දැමුවා');await tload();}};
+  a.append(rb,pb);tr.appendChild(a);tb.appendChild(tr);
+ });
+ $('tcnt').textContent=`Trash හි වචන ${data.length}ක්`;
+}
 </script>
 </body>
 </html>

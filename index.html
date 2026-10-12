@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoSketch – ශබ්දකෝෂය</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0d2b45;--grid:#1aa7ec;--paper:#f4f8fb;--red:#d6212b}
+*{box-sizing:border-box}
+body{margin:0;font:14px 'Noto Sans Sinhala','Noto Sans Tamil','Iskoola Pota','Latha',sans-serif;background:var(--paper);color:var(--ink)}
+header{background:var(--ink);color:#fff;padding:10px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+header a{color:#9fd8f7}
+h1{margin:0;font-size:20px}h1 i{font-style:normal;color:var(--grid)}
+select,button,input,textarea{font:inherit;padding:6px 9px;border-radius:6px;border:1px solid #9bb;color:var(--ink)}
+button{background:var(--grid);color:#fff;border:0;font-weight:700;cursor:pointer}
+button.alt{background:#fff;color:var(--ink);border:1px solid #9bb;font-weight:400}
+button.del{background:var(--red)}
+.box{background:#fff;border:1px solid #cfe0ea;border-radius:8px;padding:12px;margin:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#login{max-width:380px;margin:40px auto;display:none}
+#login input{width:100%;margin:5px 0}
+#err,#cfg{color:var(--red);margin-top:6px}
+#cfg{display:none;max-width:640px;margin:30px auto;line-height:1.7}
+#app{display:none}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border-bottom:1px solid #e3edf3;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#eaf4fb;position:sticky;top:0}
+td.miss{color:#c77700}
+td.act{white-space:nowrap}td.act button{padding:2px 9px;font-size:12px}
+.tw{max-height:calc(100vh - 230px);overflow:auto;border:1px solid #cfe0ea;border-radius:8px}
+.dlg{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:20}
+.dlg>div{background:#fff;padding:16px;border-radius:10px;width:min(94vw,520px);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.dlg input,.dlg select,.dlg textarea{width:100%}
+.dlg textarea{height:200px;font:13px/1.5 Consolas,monospace}
+.dlg label{font-weight:700}
+small{color:#678}
+#msg{min-height:20px;color:#2e7d32}
+</style>
+</head>
+<body>
+<header>
+ <h1>Geo<i>Sketch</i> · ශබ්දකෝෂය</h1>
+ <span id="who" style="font-size:12px;opacity:.85"></span>
+ <a href="editor.html" style="margin-left:auto">← Editor</a>
+ <a href="#" id="lo" style="display:none;color:#fff">Logout</a>
+</header>
+
+<div id="cfg" class="box">
+ <b>⚠ Supabase තවම සම්බන්ධ කර නැත.</b><br>
+ මෙම ගොනුවේ ඉහළින් ඇති <code>SUPABASE_URL</code> සහ <code>SUPABASE_ANON_KEY</code> වෙනුවට ඔබේ Supabase project එකේ
+ <b>Project Settings → API</b> හි ඇති <b>Project URL</b> සහ <b>anon public</b> key එක paste කරන්න.
+ (<b>service_role</b> key එක කිසිවිටෙක මෙහි නොයොදන්න.)
+</div>
+
+<div id="login" class="box">
+ <b>Admin Login</b>
+ <input id="em" type="email" placeholder="Email" autocomplete="username">
+ <input id="pw" type="password" placeholder="මුරපදය" autocomplete="current-password">
+ <button id="lgo">ඇතුල් වන්න</button>
+ <div id="err"></div>
+ <small>Supabase → Authentication → Users හි ඔබ සාදන Admin ගිණුමෙන් පමණක් දත්ත වෙනස් කළ හැක.</small>
+</div>
+
+<div id="app">
+ <div class="box row">
+  <select id="fk"><option value="">සියලු වර්ග</option><option value="category">වර්ග (Categories)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
+  <input id="q" placeholder="සොයන්න (සිංහල / தமிழ் / English)" style="flex:1;min-width:180px">
+  <label><input type="checkbox" id="fm"> පරිවර්තනය නැති ඒවා පමණක්</label>
+  <span id="cnt" style="margin-left:auto"></span>
+  <button id="add">➕ අලුත්</button>
+  <button class="alt" id="bulk">📥 එකවර ඇතුළත් කරන්න</button>
+  <button class="alt" id="exp">📤 CSV</button>
+ </div>
+ <div id="msg" style="margin:0 14px"></div>
+ <div class="box" style="padding:0"><div class="tw"><table>
+  <thead><tr><th>වර්ගය</th><th>සිංහල</th><th>தமிழ்</th><th>English</th><th>සටහන</th><th></th></tr></thead>
+  <tbody id="tb"></tbody>
+ </table></div></div>
+</div>
+
+<!-- එක් වචනයක් ඇතුළත් / සංස්කරණය -->
+<div class="dlg" id="d1"><div>
+ <b id="d1t">අලුත් වචනයක්</b>
+ <input type="hidden" id="eid">
+ <small id="ehint">වචන කිහිපයක් එකවර ඇතුළත් කළ හැක: සිංහල, தமிழ், English කොටු තුනෙහිම වචන <b>/</b> හෝ <b>,</b> ලකුණෙන් වෙන් කර ලියන්න. එක් එක් වචනය වෙන වෙනම පේළියක් ලෙස සුරැකේ. දෙමළ / English වචන ඇත්තේ අනුපිළිවෙලින් (1වන සිංහල වචනයට 1වන දෙමළ වචනය ආදී ලෙස).<br>උදා: <code>නගරය / පූජා නගරය / වරාය</code> · <code>நகரம் / வழிபாட்டு நகரம் / துறைமுகம்</code> · <code>City / Sacred City / Port</code></small>
+ <label>වර්ගය</label>
+ <select id="ek"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
+ <label>සිංහල</label><input id="esi" placeholder="උදා: පූජා නගරය">
+ <label>தமிழ்</label><input id="eta" placeholder="தமிழ் சொல்">
+ <label>English</label><input id="een" placeholder="English term">
+ <label>සටහන (අවශ්‍ය නම්)</label><input id="eno">
+ <div id="eerr" style="color:var(--red)"></div>
+ <div class="row"><button id="esv">සුරකින්න</button><button class="alt" id="ecl">වසන්න</button></div>
+</div></div>
+
+<!-- එකවර ඇතුළත් කිරීම -->
+<div class="dlg" id="d2"><div>
+ <b>📥 එකවර ඇතුළත් කරන්න</b>
+ <small>එක් පේළියකට එක් වචනයක්: <code>සිංහල|தமிழ்|English</code> (4වන කොටසක් ලෙස සටහනක් ද දිය හැක). දැනටමත් ඇති සිංහල වචන යාවත්කාලීන වේ.</small>
+ <label>වර්ගය</label>
+ <select id="bk"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
+ <textarea id="bt" placeholder="නගරය|நகரம்|City&#10;පූජා නගරය|வழிபாட்டு நகரம்|Sacred City" spellcheck="false"></textarea>
+ <div id="berr" style="color:var(--red)"></div>
+ <div class="row"><button id="bsv">ඇතුළත් කරන්න</button><button class="alt" id="bcl">වසන්න</button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============ මෙහි ඔබේ Supabase විස්තර paste කරන්න ============ */
+const SUPABASE_URL='https://jcijglwpkfluyzrltimk.supabase.co/';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjaWpnbHdwa2ZsdXl6cmx0aW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4MzU3OTUsImV4cCI6MjA4MjQxMTc5NX0.dvT8OiyVEiYn_DhkMakmSq1Vvr4REDr0kYPnyqCtWHs';
+/* ================================================================= */
+
+const $=id=>document.getElementById(id);
+const KN={category:'වර්ග',place:'ස්ථාන නාම',other:'වෙනත්'};
+const nk=s=>String(s).replace(/\u200d/g,'').replace(/\s+/g,' ').trim();/* DB trigger එකටම සමාන */
+let sb=null,rows=[];
+
+if(!window.supabase||SUPABASE_URL.startsWith('PASTE')||SUPABASE_ANON_KEY.startsWith('PASTE')){
+ $('cfg').style.display='block';
+}else{
+ sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+ sb.auth.onAuthStateChange((_e,s)=>s?enter(s):leave());
+ sb.auth.getSession().then(({data})=>data.session?enter(data.session):leave());
+}
+
+function leave(){$('app').style.display='none';$('login').style.display='block';$('lo').style.display='none';$('who').textContent='';}
+async function enter(s){
+ $('login').style.display='none';$('app').style.display='block';$('lo').style.display='';
+ $('who').textContent=s.user&&s.user.email?s.user.email:'';
+ await loadRows();
+}
+$('lgo').onclick=async()=>{
+ $('err').textContent='';
+ const{error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});
+ if(error)$('err').textContent='ඇතුල් විය නොහැක: '+error.message;
+};
+$('pw').onkeydown=e=>{if(e.key=='Enter')$('lgo').click();};
+$('lo').onclick=async e=>{e.preventDefault();await sb.auth.signOut();};
+
+/* ---------- දත්ත කියවීම (1000 ට වැඩි නම් කොටස් වශයෙන්) ---------- */
+async function loadRows(){
+ let all=[],from=0,step=1000;
+ for(;;){
+  const{data,error}=await sb.from('dictionary').select('*').order('kind').order('si').range(from,from+step-1);
+  if(error){flash('දත්ත කියවිය නොහැක: '+error.message,true);return;}
+  all=all.concat(data);if(data.length<step)break;from+=step;
+ }
+ rows=all;render();
+}
+function flash(t,bad){const m=$('msg');m.style.color=bad?'#d6212b':'#2e7d32';m.textContent=t;if(!bad)setTimeout(()=>{if(m.textContent==t)m.textContent='';},4000);}
+
+/* ---------- වගුව ---------- */
+function render(){
+ const k=$('fk').value,q=nk($('q').value).toLowerCase(),fm=$('fm').checked,tb=$('tb');tb.innerHTML='';
+ const list=rows.filter(r=>(!k||r.kind==k)&&(!fm||!r.ta||!r.en)&&(!q||[r.si,r.ta,r.en,r.note].some(v=>v&&nk(v).toLowerCase().includes(q))));
+ list.forEach(r=>{
+  const tr=document.createElement('tr');
+  const td=(t,miss)=>{const c=document.createElement('td');if(t)c.textContent=t;else{c.textContent='— නැත —';c.className='miss';}tr.appendChild(c);return c;};
+  td(KN[r.kind]||r.kind);td(r.si);td(r.ta);td(r.en);
+  const n=document.createElement('td');n.textContent=r.note||'';tr.appendChild(n);
+  const a=document.createElement('td');a.className='act';
+  const eb=document.createElement('button');eb.className='alt';eb.textContent='✎';eb.title='සංස්කරණය';eb.onclick=()=>openEdit(r);
+  const db=document.createElement('button');db.className='del';db.textContent='×';db.title='මකන්න';db.style.marginLeft='4px';
+  db.onclick=async()=>{if(!confirm(`"${r.si}" මකන්නද?`))return;
+   const{error}=await sb.from('dictionary').delete().eq('id',r.id);
+   if(error)flash('මැකීම අසාර්ථකයි: '+error.message,true);else{flash('මකා දැමුවා');await loadRows();}};
+  a.append(eb,db);tr.appendChild(a);tb.appendChild(tr);
+ });
+ $('cnt').textContent=`${list.length} / ${rows.length}`;
+}
+$('fk').onchange=$('fm').onchange=render;$('q').oninput=render;
+
+/* ---------- එක් වචනයක් ඇතුළත් / සංස්කරණය ---------- */
+function openEdit(r){
+ $('d1t').textContent=r?'සංස්කරණය':'අලුත් වචනයක්';
+ $('eid').value=r?r.id:'';$('ek').value=r?r.kind:($('fk').value||'category');
+ $('esi').value=r?r.si:'';$('eta').value=r&&r.ta?r.ta:'';$('een').value=r&&r.en?r.en:'';$('eno').value=r&&r.note?r.note:'';
+ $('ehint').style.display=r?'none':'block';
+ $('esi').placeholder=r?'සිංහල වචනය':'උදා: නගරය / පූජා නගරය / වරාය';
+ $('eta').placeholder=r?'தமிழ் சொல்':'நகரம் / வழிபாட்டு நகரம் / துறைமுகம்';
+ $('een').placeholder=r?'English term':'City / Sacred City / Port';
+ $('eerr').textContent='';$('d1').style.display='flex';$('esi').focus();
+}
+$('add').onclick=()=>openEdit(null);
+$('ecl').onclick=()=>$('d1').style.display='none';
+const esvSingle=async()=>{
+ const si=$('esi').value.trim();if(!si){$('eerr').textContent='සිංහල වචනය ඇතුළත් කරන්න';return;}
+ const rec={kind:$('ek').value,si,ta:$('eta').value.trim()||null,en:$('een').value.trim()||null,note:$('eno').value.trim()||null};
+ const id=$('eid').value;
+ const{error}=id?await sb.from('dictionary').update(rec).eq('id',id):await sb.from('dictionary').insert(rec);
+ if(error){$('eerr').textContent=error.code=='23505'?'මෙම සිංහල වචනය (මෙම වර්ගයේ) දැනටමත් ඇත':('සුරැකීම අසාර්ථකයි: '+error.message);return;}
+ $('d1').style.display='none';flash('සුරකින ලදී');await loadRows();
+};
+
+/* ---------- අලුත් වචන: "/" හෝ "," මගින් වෙන් කළ වචන කිහිපයක් එකවර (එක් එක් වචනය වෙන් වෙන් පේළියකට) ---------- */
+const spl=s=>{const a=s.split(/[\/,，]/).map(x=>x.trim());while(a.length&&!a[a.length-1])a.pop();return a;};
+$('esv').onclick=async()=>{
+ if($('eid').value)return esvSingle();/* සංස්කරණය: තනි වචනයක් */
+ const kind=$('ek').value,note=$('eno').value.trim()||null,
+  S=spl($('esi').value),T=spl($('eta').value),E=spl($('een').value),er=t=>$('eerr').textContent=t;
+ if(!S.length){er('සිංහල වචනය ඇතුළත් කරන්න');return;}
+ if(S.some(x=>!x)){er('සිංහල වචන අතර හිස් ස්ථානයක් ඇත (දිගට "/" හෝ "," දෙවරක් තිබේ)');return;}
+ if(T.length>S.length||E.length>S.length){er(`සිංහල වචන ${S.length}ක් ඇත, නමුත් දෙමළ ${T.length}ක් / English ${E.length}ක් ඇත. දෙමළ / English වචන සංඛ්‍යාව සිංහලට වඩා වැඩි විය නොහැක (අඩු විය හැක).`);return;}
+ const have=new Set(rows.filter(r=>r.kind==kind).map(r=>nk(r.si))),seen=new Set(),recs=[],skip=[];
+ S.forEach((si,i)=>{const k=nk(si);if(have.has(k)||seen.has(k)){skip.push(si);return;}seen.add(k);
+  recs.push({kind,si,ta:T[i]||null,en:E[i]||null,note});});
+ if(!recs.length){er('අලුත් වචන නැත – දැනටමත් ඇත: '+skip.join(', '));return;}
+ const{error}=await sb.from('dictionary').insert(recs);
+ if(error){er(error.code=='23505'?'එක් වචනයක් දැනටමත් ඇත':('සුරැකීම අසාර්ථකයි: '+error.message));return;}
+ $('d1').style.display='none';
+ flash(`වචන ${recs.length}ක් ඇතුළත් කළා`+(skip.length?` (දැනටමත් තිබූ නිසා මඟ හැරියා: ${skip.join(', ')})`:''));
+ await loadRows();
+};
+
+/* ---------- එකවර ඇතුළත් කිරීම ---------- */
+$('bulk').onclick=()=>{$('berr').textContent='';$('bt').value='';$('d2').style.display='flex';$('bt').focus();};
+$('bcl').onclick=()=>$('d2').style.display='none';
+$('bsv').onclick=async()=>{
+ const kind=$('bk').value,seen=new Map();
+ $('bt').value.split(/\r?\n/).forEach(line=>{
+  const p=line.split('|').map(s=>s.trim());if(!p[0])return;
+  seen.set(nk(p[0]),{kind,si:p[0],ta:p[1]||null,en:p[2]||null,note:p[3]||null});/* එකම වචනය දෙවරක් නම් අන්තිම එක */
+ });
+ const recs=[...seen.values()];
+ if(!recs.length){$('berr').textContent='ඇතුළත් කිරීමට පේළි නැත';return;}
+ for(let i=0;i<recs.length;i+=200){
+  const{error}=await sb.from('dictionary').upsert(recs.slice(i,i+200),{onConflict:'kind,si_norm'});
+  if(error){$('berr').textContent='අසාර්ථකයි: '+error.message;return;}
+ }
+ $('d2').style.display='none';flash(`වචන ${recs.length}ක් ඇතුළත් / යාවත්කාලීන කළා`);await loadRows();
+};
+
+/* ---------- CSV export ---------- */
+$('exp').onclick=()=>{
+ const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+ const csv='\ufeff'+['kind,si,ta,en,note',...rows.map(r=>[r.kind,r.si,r.ta,r.en,r.note].map(q).join(','))].join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ a.download='geosketch_dictionary.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+};
+</script>
+</body>
+</html>

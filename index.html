@@ -28,12 +28,21 @@ th,td{border-bottom:1px solid #e3edf3;padding:6px 8px;text-align:left;vertical-a
 th{background:#eaf4fb;position:sticky;top:0}
 td.miss{color:#c77700}
 td.act{white-space:nowrap}td.act button{padding:2px 9px;font-size:12px}
+td.tg span{display:inline-block;border-radius:10px;padding:1px 8px;margin:1px 3px 1px 0;font-size:12px}
+td.tg .c{background:#e6f4ea;color:#1b7a3a}
+td.tg .s{background:#fff4d6;color:#7a5a00}
 .tw{max-height:calc(100vh - 230px);overflow:auto;border:1px solid #cfe0ea;border-radius:8px}
 .dlg{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:20}
 .dlg>div{background:#fff;padding:16px;border-radius:10px;width:min(94vw,520px);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:8px}
 .dlg input,.dlg select,.dlg textarea{width:100%}
 .dlg textarea{height:200px;font:13px/1.5 Consolas,monospace}
 .dlg label{font-weight:700}
+/* වර්ග / වැදගත්කම් තෝරන Tick list */
+.pk{border:1px solid #cfe0ea;border-radius:8px;padding:6px;background:#fafdff}
+.pk .pl{max-height:150px;overflow:auto;border:1px solid #e3edf3;border-radius:6px;padding:4px;margin:4px 0;background:#fff}
+.pk label{display:flex;gap:6px;align-items:center;font-weight:400;padding:2px 0;cursor:pointer}
+.pk input[type=checkbox]{width:auto}
+.pk .pc{color:#1b7a3a;font-weight:700}
 small{color:#678}
 #msg{min-height:20px;color:#2e7d32}
 footer{text-align:center;padding:26px 10px 34px}
@@ -66,10 +75,12 @@ footer a:hover{color:#789}
 </div>
 
 <div id="app">
+ <div id="cwarn" class="box" style="display:none;color:#b45309;line-height:1.6">⚠ ශබ්දකෝෂ table එකේ <b>cats</b> (වර්ග) සහ <b>sig</b> (වැදගත්කම්) columns තවම නැත. Supabase → SQL Editor හි <b>dictionary_columns.sql</b> ගොනුවේ SQL එක ධාවනය කර, මෙම පිටුව refresh කරන්න.</div>
  <div class="box row">
-  <select id="fk"><option value="">සියලු වර්ග</option><option value="category">වර්ග (Categories)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
-  <input id="q" placeholder="සොයන්න (සිංහල / தமிழ் / English)" style="flex:1;min-width:180px">
+  <select id="fk"><option value="">සියලු වර්ග</option><option value="category">වර්ග (Categories)</option><option value="place">ස්ථාන නාම</option><option value="significance">වැදගත්කම්</option><option value="other">වෙනත්</option></select>
+  <input id="q" placeholder="සොයන්න (සිංහල / தமிழ் / English / වර්ග / වැදගත්කම්)" style="flex:1;min-width:180px">
   <label><input type="checkbox" id="fm"> පරිවර්තනය නැති ඒවා පමණක්</label>
+  <label><input type="checkbox" id="fn"> වර්ගයක් නැති ස්ථාන පමණක්</label>
   <span id="cnt" style="margin-left:auto"></span>
   <button id="add">➕ අලුත්</button>
   <button class="alt" id="bulk">📥 එකවර ඇතුළත් කරන්න</button>
@@ -77,7 +88,7 @@ footer a:hover{color:#789}
  </div>
  <div id="msg" style="margin:0 14px"></div>
  <div class="box" style="padding:0"><div class="tw"><table>
-  <thead><tr><th>වර්ගය</th><th>සිංහල</th><th>தமிழ்</th><th>English</th><th>සටහන</th><th></th></tr></thead>
+  <thead><tr><th>වර්ගය</th><th>සිංහල</th><th>தமிழ்</th><th>English</th><th>වර්ග</th><th>වැදගත්කම්</th><th>සටහන</th><th></th></tr></thead>
   <tbody id="tb"></tbody>
  </table></div></div>
 </div>
@@ -88,11 +99,15 @@ footer a:hover{color:#789}
  <input type="hidden" id="eid">
  <small id="ehint">වචන කිහිපයක් එකවර ඇතුළත් කළ හැක: සිංහල, தமிழ், English කොටු තුනෙහිම වචන <b>/</b> හෝ <b>,</b> ලකුණෙන් වෙන් කර ලියන්න. එක් එක් වචනය වෙන වෙනම පේළියක් ලෙස සුරැකේ. දෙමළ / English වචන ඇත්තේ අනුපිළිවෙලින් (1වන සිංහල වචනයට 1වන දෙමළ වචනය ආදී ලෙස). <b>සිංහල පමණක්</b> ලියා දෙමළ / English හිස්ව තැබිය හැක.<br>උදා: <code>නගරය / පූජා නගරය / වරාය</code> · <code>நகரம் / வழிபாட்டு நகரம் / துறைமுகம்</code> · <code>City / Sacred City / Port</code></small>
  <label>වර්ගය</label>
- <select id="ek"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
+ <select id="ek"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="significance">වැදගත්කම් (Significance)</option><option value="other">වෙනත්</option></select>
  <label>සිංහල</label><input id="esi">
  <label>தமிழ்</label><input id="eta">
  <label>English</label><input id="een">
  <label>සටහන (අවශ්‍ය නම්)</label><input id="eno">
+ <div id="epk">
+  <label>ස්ථානයේ වර්ග <small>(Tick කරන්න)</small></label><div id="pkc"></div>
+  <label>ස්ථානයේ වැදගත්කම් <small>(උපරිම 10)</small></label><div id="pks"></div>
+ </div>
  <div id="eerr" style="color:var(--red)"></div>
  <div class="row"><button id="esv">සුරකින්න</button><button class="alt" id="ecl">වසන්න</button></div>
 </div></div>
@@ -102,8 +117,13 @@ footer a:hover{color:#789}
  <b>📥 එකවර ඇතුළත් කරන්න</b>
  <small>එක් පේළියකට එක් වචනයක්: <code>සිංහල|தமிழ்|English</code> (4වන කොටසක් ලෙස සටහනක් ද දිය හැක). දැනටමත් ඇති සිංහල වචන යාවත්කාලීන වේ (පරණ අගය Trash එකට යයි, එබැවින් නැවත ලබා ගත හැක).<br><b>සිංහල වචන පමණක්</b> ඇත්නම් "|" නොමැතිව ලියන්න; <code>කන්දරෝඩෙයි / හැමන්හෛල් / සූකරතිත්ථ</code> ලෙස <b>/</b> හෝ <b>,</b> වලින් වෙන් කළ හැක. ඒවා වෙන් වෙන් පේළි ලෙස සුරැකේ (දෙමළ / English "නැත" ලෙස පෙනේ).</small>
  <label>වර්ගය</label>
- <select id="bk"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="other">වෙනත්</option></select>
+ <select id="bk"><option value="category">වර්ග (Category)</option><option value="place">ස්ථාන නාම</option><option value="significance">වැදගත්කම් (Significance)</option><option value="other">වෙනත්</option></select>
  <textarea id="bt" placeholder="නගරය|நகரம்|City&#10;පූජා නගරය|வழிபாட்டு நகரம்|Sacred City" spellcheck="false"></textarea>
+ <div id="bpk">
+  <small>"ස්ථාන නාම" වර්ගය තෝරා ඇති විට: පහත තෝරන වර්ග / වැදගත්කම්, ඉහත ලැයිස්තුවේ සියලු ස්ථානවලටම එක් වේ (දැනටමත් ඇති ස්ථානවලට ද; දැනට ඇති ඒවා මැකෙන්නේ නැත).</small>
+  <label>සියලු ස්ථානවලටම වර්ග</label><div id="bpc"></div>
+  <label>සියලු ස්ථානවලටම වැදගත්කම් <small>(උපරිම 10)</small></label><div id="bps"></div>
+ </div>
  <div id="berr" style="color:var(--red)"></div>
  <div class="row"><button id="bsv">ඇතුළත් කරන්න</button><button class="alt" id="bcl">වසන්න</button></div>
 </div></div>
@@ -139,11 +159,59 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 /* ========================================= */
 
 const $=id=>document.getElementById(id);
-const KN={category:'වර්ග',place:'ස්ථාන නාම',other:'වෙනත්'};
+const KN={category:'වර්ග',place:'ස්ථාන නාම',significance:'වැදගත්කම්',other:'වෙනත්'};
 const RN={deleted:'මැකූවා',overwritten:'පරණ අගය (overwrite)'};
 const nk=s=>String(s).replace(/\u200d/g,'').replace(/\s+/g,' ').trim();/* DB trigger එකටම සමාන */
 const spl=s=>{const a=s.split(/[\/,，]/).map(x=>x.trim());while(a.length&&!a[a.length-1])a.pop();return a;};
-let sb=null,sbA=null,rows=[],CRED=null;/* CRED = {email,pw} – මෙම tab එකේ පමණක් (sessionStorage) */
+let sb=null,sbA=null,rows=[],CRED=null,HAS=true;/* CRED = {email,pw} – මෙම tab එකේ පමණක් (sessionStorage); HAS = cats/sig columns ඇත්දැයි */
+
+/* ---------- වර්ග / වැදගත්කම් තෝරන Tick list ---------- */
+const vocC=()=>rows.filter(r=>r.kind=='category').map(r=>r.si);
+const vocS=()=>rows.filter(r=>r.kind=='significance').map(r=>r.si);
+function mkPicker(el,vocab,max){
+ const st={sel:[],extra:[]};
+ el.className='pk';
+ el.innerHTML='<input class="pf" placeholder="🔍 ලැයිස්තුවේ සොයන්න"><div class="pl"></div><div class="row"><input class="pn" placeholder="අලුත් එකක් ටයිප් කර ＋ ඔබන්න" style="flex:1"><button class="alt pb" type="button">＋</button></div><small class="pc"></small>';
+ const pf=el.querySelector('.pf'),pl=el.querySelector('.pl'),pn=el.querySelector('.pn'),pc=el.querySelector('.pc');
+ const draw=()=>{
+  const q=nk(pf.value).toLowerCase(),all=[...new Set([...st.sel,...vocab(),...st.extra])];
+  const list=all.filter(x=>!q||nk(x).toLowerCase().includes(q));
+  list.sort((a,b)=>st.sel.includes(b)-st.sel.includes(a));
+  pl.innerHTML='';
+  list.forEach(x=>{const lb=document.createElement('label'),cb=document.createElement('input');cb.type='checkbox';cb.checked=st.sel.includes(x);
+   cb.onchange=()=>{
+    if(cb.checked){if(st.sel.length>=max){alert('උපරිම '+max+'ක් පමණක් තෝරා ගත හැක');cb.checked=false;return;}st.sel.push(x);}
+    else st.sel=st.sel.filter(y=>y!=x);
+    draw();};
+   lb.append(cb,document.createTextNode(x));pl.appendChild(lb);});
+  if(!list.length)pl.innerHTML='<small>කිසිවක් නැත</small>';
+  pc.textContent='තෝරා ඇත: '+st.sel.length+(max<99?' / '+max:'');
+ };
+ const addNew=()=>{const v=pn.value.trim();if(!v)return;
+  if(!st.sel.includes(v)){if(st.sel.length>=max){alert('උපරිම '+max+'ක් පමණක් තෝරා ගත හැක');return;}st.sel.push(v);}
+  if(!st.extra.includes(v))st.extra.push(v);pn.value='';pf.value='';draw();};
+ pf.oninput=draw;
+ pn.onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();addNew();}};
+ el.querySelector('.pb').onclick=addNew;
+ draw();
+ return{
+  set(a){st.sel=(a||[]).slice(0,max);st.extra=[];pf.value='';pn.value='';draw();},
+  get:()=>st.sel.slice(),
+  news:()=>st.sel.filter(x=>!vocab().some(v=>nk(v)==nk(x))),/* ශබ්දකෝෂයේ තවම නැති අලුත් වචන */
+  draw
+ };
+}
+const pkC=mkPicker($('pkc'),vocC,99),pkS=mkPicker($('pks'),vocS,10),bpC=mkPicker($('bpc'),vocC,99),bpS=mkPicker($('bps'),vocS,10);
+const togK=()=>{$('epk').style.display=(HAS&&$('ek').value=='place')?'block':'none';};
+const togB=()=>{$('bpk').style.display=(HAS&&$('bk').value=='place')?'block':'none';};
+$('ek').onchange=togK;$('bk').onchange=togB;
+/* අලුත් වර්ග / වැදගත්කම් වචන ශබ්දකෝෂයටත් එක් කරයි */
+async function addVocab(words,kind){
+ const w=words.filter(x=>!rows.some(r=>r.kind==kind&&nk(r.si)==nk(x)));
+ if(!w.length)return'';
+ const{error}=await api('dict_save',{p_rows:w.map(si=>({kind,si,ta:null,en:null,note:null})),p_overwrite:false});
+ return error?`"${KN[kind]}" වචන ශබ්දකෝෂයට සුරැකීම අසාර්ථකයි (${error.message}). `:'';
+}
 
 if(!window.supabase||!SUPABASE_URL||!SUPABASE_ANON_KEY){$('cfg').style.display='block';}
 else{
@@ -195,18 +263,22 @@ async function loadRows(){
   if(error){flash('දත්ත කියවිය නොහැක: '+error.message,true);return;}
   all=all.concat(data);if(data.length<step)break;from+=step;
  }
- rows=all;render();
+ rows=all;HAS=!rows.length||('cats' in rows[0]);
+ $('cwarn').style.display=HAS?'none':'block';
+ render();
 }
 function flash(t,bad){const m=$('msg');m.style.color=bad?'#d6212b':'#2e7d32';m.textContent=t;if(!bad)setTimeout(()=>{if(m.textContent==t)m.textContent='';},4000);}
 
 /* ---------- වගුව ---------- */
 function render(){
- const k=$('fk').value,q=nk($('q').value).toLowerCase(),fm=$('fm').checked,tb=$('tb');tb.innerHTML='';
- const list=rows.filter(r=>(!k||r.kind==k)&&(!fm||!r.ta||!r.en)&&(!q||[r.si,r.ta,r.en,r.note].some(v=>v&&nk(v).toLowerCase().includes(q))));
+ const k=$('fk').value,q=nk($('q').value).toLowerCase(),fm=$('fm').checked,fn=$('fn').checked,tb=$('tb');tb.innerHTML='';
+ const list=rows.filter(r=>(!k||r.kind==k)&&(!fm||!r.ta||!r.en)&&(!fn||(r.kind=='place'&&!(r.cats&&r.cats.length)))&&(!q||[r.si,r.ta,r.en,r.note,...(r.cats||[]),...(r.sig||[])].some(v=>v&&nk(v).toLowerCase().includes(q))));
  list.forEach(r=>{
   const tr=document.createElement('tr');
   const td=t=>{const c=document.createElement('td');if(t)c.textContent=t;else{c.textContent='— නැත —';c.className='miss';}tr.appendChild(c);return c;};
+  const tg=(arr,cls)=>{const c=document.createElement('td');c.className='tg';(arr||[]).forEach(x=>{const s=document.createElement('span');s.className=cls;s.textContent=x;c.appendChild(s);});tr.appendChild(c);};
   td(KN[r.kind]||r.kind);td(r.si);td(r.ta);td(r.en);
+  tg(r.cats,'c');tg(r.sig,'s');
   const n=document.createElement('td');n.textContent=r.note||'';tr.appendChild(n);
   const a=document.createElement('td');a.className='act';
   const eb=document.createElement('button');eb.className='alt';eb.textContent='✎';eb.title='සංස්කරණය';eb.onclick=()=>openEdit(r);
@@ -218,13 +290,14 @@ function render(){
  });
  $('cnt').textContent=`${list.length} / ${rows.length}`;
 }
-$('fk').onchange=$('fm').onchange=render;$('q').oninput=render;
+$('fk').onchange=$('fm').onchange=$('fn').onchange=render;$('q').oninput=render;
 
 /* ---------- එක් වචනයක් ඇතුළත් / සංස්කරණය ---------- */
 function openEdit(r){
  $('d1t').textContent=r?'සංස්කරණය':'අලුත් වචනයක්';
  $('eid').value=r?r.id:'';$('ek').value=r?r.kind:($('fk').value||'category');
  $('esi').value=r?r.si:'';$('eta').value=r&&r.ta?r.ta:'';$('een').value=r&&r.en?r.en:'';$('eno').value=r&&r.note?r.note:'';
+ pkC.set(r?r.cats:[]);pkS.set(r?r.sig:[]);togK();
  $('ehint').style.display=r?'none':'block';
  $('esi').placeholder=r?'සිංහල වචනය':'උදා: නගරය / පූජා නගරය / වරාය';
  $('eta').placeholder=r?'தமிழ் சொல்':'நகரம் / வழிபாட்டு நகரம் / துறைமுகம்';
@@ -241,6 +314,7 @@ $('esv').onclick=async()=>{
  if(!S.length){er('සිංහල වචනය ඇතුළත් කරන්න');return;}
  if(S.some(x=>!x)){er('සිංහල වචන අතර හිස් ස්ථානයක් ඇත (දිගට "/" හෝ "," දෙවරක් තිබේ)');return;}
  if(T.length>S.length||E.length>S.length){er(`සිංහල වචන ${S.length}ක් ඇත, නමුත් දෙමළ ${T.length}ක් / English ${E.length}ක් ඇත. දෙමළ / English වචන සංඛ්‍යාව සිංහලට වඩා වැඩි විය නොහැක (අඩු විය හැක).`);return;}
+ const isP=kind=='place'&&HAS,cats=isP?pkC.get():null,sig=isP?pkS.get():null;
  const have=new Set(rows.filter(r=>r.kind==kind).map(r=>nk(r.si))),seen=new Set(),recs=[],skip=[];
  S.forEach((si,i)=>{if(eid&&i==0)return;
   const k=nk(si);if(have.has(k)||seen.has(k)){skip.push(si);return;}seen.add(k);
@@ -254,13 +328,26 @@ $('esv').onclick=async()=>{
   const{error}=await api('dict_save',{p_rows:recs,p_overwrite:false});
   if(error){er('සුරැකීම අසාර්ථකයි: '+error.message);return;}
  }
+ /* වර්ග / වැදගත්කම් (ස්ථාන නාම සඳහා) */
+ let warn='';
+ if(isP){
+  warn+=await addVocab(pkC.news(),'category');warn+=await addVocab(pkS.news(),'significance');
+  await loadRows();
+  const ids=[];if(eid)ids.push(+eid);
+  recs.forEach(r=>{const x=rows.find(y=>y.kind==kind&&nk(y.si)==nk(r.si));if(x)ids.push(x.id);});
+  for(const id of ids){
+   const m=await api('dict_set_meta',{p_id:id,p_cats:cats,p_sig:sig});
+   if(m.error){warn+='වර්ග / වැදගත්කම් සුරැකීම අසාර්ථකයි: '+m.error.message+' (dictionary_columns.sql ධාවනය කර ඇත්දැයි බලන්න)';break;}
+  }
+ }
  $('d1').style.display='none';
- flash(`වචන ${recs.length+(eid?1:0)}ක් සුරකින ලදී`+(skip.length?` (දැනටමත් තිබූ නිසා මඟ හැරියා: ${skip.join(', ')})`:''));
+ if(warn)flash(warn,true);
+ else flash(`වචන ${recs.length+(eid?1:0)}ක් සුරකින ලදී`+(skip.length?` (දැනටමත් තිබූ නිසා මඟ හැරියා: ${skip.join(', ')})`:''));
  await loadRows();
 };
 
 /* ---------- එකවර ඇතුළත් කිරීම ---------- */
-$('bulk').onclick=()=>{$('berr').textContent='';$('bt').value='';$('d2').style.display='flex';$('bt').focus();};
+$('bulk').onclick=()=>{$('berr').textContent='';$('bt').value='';bpC.set([]);bpS.set([]);togB();$('d2').style.display='flex';$('bt').focus();};
 $('bcl').onclick=()=>$('d2').style.display='none';
 $('bsv').onclick=async()=>{
  const kind=$('bk').value,seen=new Map();
@@ -269,20 +356,34 @@ $('bsv').onclick=async()=>{
   if(p.length==1){spl(p[0]).forEach(w=>{if(w)seen.set(nk(w),{kind,si:w,ta:null,en:null,note:null});});return;}
   seen.set(nk(p[0]),{kind,si:p[0],ta:p[1]||null,en:p[2]||null,note:p[3]||null});
  });
+ const all=[...seen.values()];
  /* පරිවර්තන නැති (සිංහල පමණක්) වචන දැනටමත් ශබ්දකෝෂයේ ඇත්නම් ඒවා මඟ හරියි */
- const recs=[...seen.values()].filter(r=>r.ta||r.en||!rows.some(x=>x.kind==r.kind&&nk(x.si)==nk(r.si)));
- if(!recs.length){$('berr').textContent='ඇතුළත් කිරීමට අලුත් පේළි නැත';return;}
+ const recs=all.filter(r=>r.ta||r.en||!rows.some(x=>x.kind==r.kind&&nk(x.si)==nk(r.si)));
+ const bc=bpC.get(),bs=bpS.get(),wantMeta=kind=='place'&&HAS&&(bc.length||bs.length);
+ if(!recs.length&&!wantMeta){$('berr').textContent='ඇතුළත් කිරීමට අලුත් පේළි නැත';return;}
  for(let i=0;i<recs.length;i+=200){
   const{error}=await api('dict_save',{p_rows:recs.slice(i,i+200),p_overwrite:true});
   if(error){$('berr').textContent='අසාර්ථකයි: '+error.message;return;}
  }
- $('d2').style.display='none';flash(`වචන ${recs.length}ක් ඇතුළත් / යාවත්කාලීන කළා`);await loadRows();
+ if(wantMeta){
+  let w=await addVocab(bpC.news(),'category');w+=await addVocab(bpS.news(),'significance');
+  await loadRows();
+  const ids=all.map(r=>rows.find(y=>y.kind==kind&&nk(y.si)==nk(r.si))).filter(Boolean).map(x=>x.id);
+  for(let i=0;i<ids.length;i+=200){
+   const m=await api('dict_add_meta',{p_ids:ids.slice(i,i+200),p_cats:bc,p_sig:bs});
+   if(m.error){$('berr').textContent='වර්ග / වැදගත්කම් සුරැකීම අසාර්ථකයි: '+m.error.message+' (dictionary_columns.sql ධාවනය කර ඇත්දැයි බලන්න)';await loadRows();return;}
+  }
+  if(w)flash(w,true);
+ }
+ $('d2').style.display='none';
+ if(!wantMeta||!$('msg').textContent)flash(`වචන ${all.length}ක් ඇතුළත් / යාවත්කාලීන කළා`);
+ await loadRows();
 };
 
 /* ---------- CSV export ---------- */
 $('exp').onclick=()=>{
  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
- const csv='\ufeff'+['kind,si,ta,en,note',...rows.map(r=>[r.kind,r.si,r.ta,r.en,r.note].map(q).join(','))].join('\r\n');
+ const csv='\ufeff'+['kind,si,ta,en,note,cats,sig',...rows.map(r=>[r.kind,r.si,r.ta,r.en,r.note,(r.cats||[]).join(' ; '),(r.sig||[]).join(' ; ')].map(q).join(','))].join('\r\n');
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  a.download='geosketch_dictionary.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 };

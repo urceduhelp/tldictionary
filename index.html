@@ -34,6 +34,7 @@ td.tg .s{background:#fff4d6;color:#7a5a00}
 .tw{max-height:calc(100vh - 230px);overflow:auto;border:1px solid #cfe0ea;border-radius:8px}
 .dlg{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:20}
 .dlg>div{background:#fff;padding:16px;border-radius:10px;width:min(94vw,520px);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.ebad{display:inline-block;background:#fde8e8;color:#b3261e;border-radius:10px;padding:1px 8px;margin:1px 3px 1px 0;font-size:12px}
 .dlg input,.dlg select,.dlg textarea{width:100%}
 .dlg textarea{height:200px;font:13px/1.5 Consolas,monospace}
 .dlg label{font-weight:700}
@@ -85,13 +86,27 @@ footer a:hover{color:#789}
   <button id="add">➕ අලුත්</button>
   <button class="alt" id="bulk">📥 එකවර ඇතුළත් කරන්න</button>
   <button class="alt" id="exp">📤 CSV</button>
+  <button class="alt" id="efd" style="border-color:#d6212b;color:#b3261e">🔍 දෝෂ සොයන්න</button>
  </div>
  <div id="msg" style="margin:0 14px"></div>
+ <div id="ebar" class="box row" style="display:none;background:#fff4d6;border-color:#f0d58a"><span id="ebt"></span><button class="alt" id="ebr" style="margin-left:auto">🔍 දෝෂ පරීක්ෂකය</button><button class="alt" id="ebx">✖ පෙරහන ඉවත් කරන්න</button></div>
  <div class="box" style="padding:0"><div class="tw"><table>
   <thead><tr><th>වර්ගය</th><th>සිංහල</th><th>தமிழ்</th><th>English</th><th>වර්ග</th><th>වැදගත්කම්</th><th>සටහන</th><th></th></tr></thead>
   <tbody id="tb"></tbody>
  </table></div></div>
 </div>
+
+<!-- දෝෂ සොයන්න (Error finder) -->
+<div class="dlg" id="d4"><div style="width:min(96vw,940px)">
+ <b>🔍 දෝෂ සොයන්න (Error finder)</b>
+ <small>පරීක්ෂා කළ යුතු දේ තෝරන්න. අඩුපාඩු ඇති වචන පහත ලැයිස්තුගත වේ. <b>✎</b> ඔබා සංස්කරණය කර සුරකින්න; ලැයිස්තුව ස්වයංක්‍රීයව යාවත්කාලීන වේ.</small>
+ <div class="row"><label style="font-weight:400">වර්ගය:</label><select id="ekk" style="width:auto"><option value="">සියලු වර්ග</option><option value="category">වර්ග (Categories)</option><option value="place">ස්ථාන නාම</option><option value="significance">වැදගත්කම්</option><option value="other">වෙනත්</option></select></div>
+ <div id="echk" style="display:flex;flex-wrap:wrap;gap:4px 14px"></div>
+ <div class="row"><b id="ecnt"></b><button class="alt" id="eshow" style="margin-left:auto">📋 ප්‍රධාන වගුවේ පෙන්වන්න</button><button class="alt" id="ecl2">වසන්න</button></div>
+ <div style="max-height:48vh;overflow:auto;border:1px solid #cfe0ea;border-radius:8px"><table>
+  <thead><tr><th>වර්ගය</th><th>සිංහල</th><th>தமிழ்</th><th>English</th><th>අඩුපාඩු</th><th></th></tr></thead>
+  <tbody id="etb"></tbody></table></div>
+</div></div>
 
 <!-- එක් වචනයක් ඇතුළත් / සංස්කරණය -->
 <div class="dlg" id="d1"><div>
@@ -163,7 +178,7 @@ const KN={category:'වර්ග',place:'ස්ථාන නාම',significance
 const RN={deleted:'මැකූවා',overwritten:'පරණ අගය (overwrite)'};
 const nk=s=>String(s).replace(/\u200d/g,'').replace(/\s+/g,' ').trim();/* DB trigger එකටම සමාන */
 const spl=s=>{const a=s.split(/[\/,，]/).map(x=>x.trim());while(a.length&&!a[a.length-1])a.pop();return a;};
-let sb=null,sbA=null,rows=[],CRED=null,HAS=true;/* CRED = {email,pw} – මෙම tab එකේ පමණක් (sessionStorage); HAS = cats/sig columns ඇත්දැයි */
+let sb=null,sbA=null,rows=[],CRED=null,HAS=true,errIds=null;/* CRED = {email,pw} – මෙම tab එකේ පමණක් (sessionStorage); HAS = cats/sig columns ඇත්දැයි */
 
 /* ---------- වර්ග / වැදගත්කම් තෝරන Tick list ---------- */
 const vocC=()=>rows.filter(r=>r.kind=='category').map(r=>r.si);
@@ -265,6 +280,8 @@ async function loadRows(){
  }
  rows=all;HAS=!rows.length||('cats' in rows[0]);
  $('cwarn').style.display=HAS?'none':'block';
+ if(errIds)errIds=new Set(calc().list.map(x=>x.r.id));
+ if($('d4').style.display=='flex')runFind();
  render();
 }
 function flash(t,bad){const m=$('msg');m.style.color=bad?'#d6212b':'#2e7d32';m.textContent=t;if(!bad)setTimeout(()=>{if(m.textContent==t)m.textContent='';},4000);}
@@ -272,7 +289,7 @@ function flash(t,bad){const m=$('msg');m.style.color=bad?'#d6212b':'#2e7d32';m.t
 /* ---------- වගුව ---------- */
 function render(){
  const k=$('fk').value,q=nk($('q').value).toLowerCase(),fm=$('fm').checked,fn=$('fn').checked,tb=$('tb');tb.innerHTML='';
- const list=rows.filter(r=>(!k||r.kind==k)&&(!fm||!r.ta||!r.en)&&(!fn||(r.kind=='place'&&!(r.cats&&r.cats.length)))&&(!q||[r.si,r.ta,r.en,r.note,...(r.cats||[]),...(r.sig||[])].some(v=>v&&nk(v).toLowerCase().includes(q))));
+ const list=rows.filter(r=>(!errIds||errIds.has(r.id))&&(!k||r.kind==k)&&(!fm||!r.ta||!r.en)&&(!fn||(r.kind=='place'&&!(r.cats&&r.cats.length)))&&(!q||[r.si,r.ta,r.en,r.note,...(r.cats||[]),...(r.sig||[])].some(v=>v&&nk(v).toLowerCase().includes(q))));
  list.forEach(r=>{
   const tr=document.createElement('tr');
   const td=t=>{const c=document.createElement('td');if(t)c.textContent=t;else{c.textContent='— නැත —';c.className='miss';}tr.appendChild(c);return c;};
@@ -289,6 +306,7 @@ function render(){
   a.append(eb,db);tr.appendChild(a);tb.appendChild(tr);
  });
  $('cnt').textContent=`${list.length} / ${rows.length}`;
+ updateBar();
 }
 $('fk').onchange=$('fm').onchange=$('fn').onchange=render;$('q').oninput=render;
 
@@ -429,6 +447,64 @@ async function tload(){
  });
  $('tcnt').textContent=`Trash හි වචන ${data.length}ක්`;
 }
+
+/* ---------- දෝෂ සොයන්න (Error finder) ---------- */
+const SIR=/[\u0D80-\u0DFF]/,TAR=/[\u0B80-\u0BFF]/,LAR=/[A-Za-z]/;
+const oddSp=v=>v!==v.trim()||/\s{2,}/.test(v)||/[\u200b\u200c\u2060\ufeff\u00a0]/.test(v);/* ZWJ (\u200d) සිංහලයට අවශ්‍ය නිසා නොසලකයි */
+const isP=r=>HAS&&r.kind=='place';
+const CHK=[
+ {k:'noTa',s:'தமிழ் නැත',t:'දෙමළ යෙදුම නැත',on:1,f:r=>!r.ta},
+ {k:'noEn',s:'English නැත',t:'English යෙදුම නැත',on:1,f:r=>!r.en},
+ {k:'noCat',s:'වර්ග නැත',t:'ස්ථානයට වර්ගයක් තෝරා නැත',on:1,f:r=>isP(r)&&!(r.cats&&r.cats.length)},
+ {k:'noSig',s:'වැදගත්කම් නැත',t:'ස්ථානයට වැදගත්කමක් නැත',on:0,f:r=>isP(r)&&!(r.sig&&r.sig.length)},
+ {k:'badTa',s:'දෙමළ වැරදියි',t:'දෙමළ කොටුවේ දෙමළ අකුරු නැත / සිංහල අකුරු ඇත',on:1,f:r=>!!r.ta&&(!TAR.test(r.ta)||SIR.test(r.ta))},
+ {k:'badEn',s:'English වැරදියි',t:'English කොටුවේ සිංහල / දෙමළ අකුරු ඇත (හෝ ඉංග්‍රීසි අකුරු නැත)',on:1,f:r=>!!r.en&&(SIR.test(r.en)||TAR.test(r.en)||!LAR.test(r.en))},
+ {k:'badSi',s:'සිංහල වැරදියි',t:'සිංහල කොටුවේ සිංහල අකුරු නැත / දෙමළ අකුරු ඇත',on:1,f:r=>!SIR.test(r.si)||TAR.test(r.si)},
+ {k:'sp',s:'හිස්තැන්',t:'අමතර හිස්තැන් / සැඟවුණු අකුරු',on:1,f:r=>[r.si,r.ta,r.en].some(v=>v&&oddSp(v))},
+ {k:'unk',s:'නොදන්නා වර්ග',t:'ශබ්දකෝෂයේ නැති වර්ග / වැදගත්කම් යොදා ඇත',on:1,f:(r,x)=>isP(r)&&((r.cats||[]).some(c=>!x.vc.has(nk(c)))||(r.sig||[]).some(c=>!x.vs.has(nk(c))))}
+];
+const cst={};CHK.forEach(c=>cst[c.k]=!!c.on);let chkBuilt=false;
+function calc(){
+ const kk=$('ekk').value,x={vc:new Set(vocC().map(nk)),vs:new Set(vocS().map(nk))},base=rows.filter(r=>!kk||r.kind==kk),counts={},list=[];
+ CHK.forEach(c=>counts[c.k]=0);
+ base.forEach(r=>{const hit=CHK.filter(c=>c.f(r,x));hit.forEach(c=>counts[c.k]++);
+  const sh=hit.filter(c=>cst[c.k]);if(sh.length)list.push({r,sh});});
+ return{list,counts,n:base.length};
+}
+function buildChk(){
+ const el=$('echk');el.innerHTML='';
+ CHK.forEach(c=>{const lb=document.createElement('label'),cb=document.createElement('input'),sm=document.createElement('small');
+  lb.style.cssText='font-weight:400;display:flex;gap:5px;align-items:center;cursor:pointer';cb.type='checkbox';cb.style.width='auto';cb.checked=cst[c.k];
+  cb.onchange=()=>{cst[c.k]=cb.checked;runFind();};sm.id='ecn_'+c.k;sm.style.fontWeight='700';
+  lb.append(cb,document.createTextNode(c.t+' '),sm);el.appendChild(lb);});
+ chkBuilt=true;
+}
+function runFind(){
+ const{list,counts,n}=calc();
+ CHK.forEach(c=>{const e=$('ecn_'+c.k);if(e)e.textContent='('+counts[c.k]+')';});
+ $('ecnt').textContent=`අඩුපාඩු සහිත වචන ${list.length} / ${n}`;
+ const tb=$('etb');tb.innerHTML='';
+ list.slice(0,300).forEach(({r,sh})=>{
+  const tr=document.createElement('tr');
+  const td=t=>{const c=document.createElement('td');if(t)c.textContent=t;else{c.textContent='— නැත —';c.className='miss';}tr.appendChild(c);};
+  td(KN[r.kind]||r.kind);td(r.si);td(r.ta);td(r.en);
+  const bd=document.createElement('td');sh.forEach(c=>{const b=document.createElement('span');b.className='ebad';b.textContent=c.s;bd.appendChild(b);});tr.appendChild(bd);
+  const a=document.createElement('td');a.className='act';
+  const eb=document.createElement('button');eb.textContent='✎ සංස්කරණය';eb.onclick=()=>openEdit(r);a.appendChild(eb);tr.appendChild(a);tb.appendChild(tr);});
+ if(list.length>300){const tr=document.createElement('tr'),c=document.createElement('td');c.colSpan=6;c.style.color='#678';c.textContent=`… තවත් ${list.length-300}ක් ඇත. ඒවා නිවැරදි කළ පසු ලැයිස්තුව අලුත් වේ (හෝ පෙරහන තද කරන්න).`;tr.appendChild(c);tb.appendChild(tr);}
+ if(!list.length){const tr=document.createElement('tr'),c=document.createElement('td');c.colSpan=6;c.style.color='#2e7d32';c.textContent='✔ තෝරාගත් පරීක්ෂාවලට අනුව අඩුපාඩු නැත';tr.appendChild(c);tb.appendChild(tr);}
+}
+function openFind(){if(!chkBuilt)buildChk();$('d4').style.display='flex';runFind();}
+function updateBar(){
+ const b=$('ebar');if(!b)return;
+ b.style.display=errIds?'flex':'none';
+ if(errIds)$('ebt').textContent='🔍 අඩුපාඩු සහිත වචන '+errIds.size+'ක් පමණක් පෙන්වයි';
+}
+$('efd').onclick=openFind;$('ebr').onclick=openFind;
+$('ekk').onchange=runFind;
+$('ecl2').onclick=()=>$('d4').style.display='none';
+$('eshow').onclick=()=>{errIds=new Set(calc().list.map(x=>x.r.id));$('d4').style.display='none';$('fk').value='';$('fm').checked=false;$('fn').checked=false;$('q').value='';render();};
+$('ebx').onclick=()=>{errIds=null;render();};
 </script>
 </body>
 </html>
